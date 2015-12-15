@@ -748,8 +748,8 @@ class CeresSlice(object):
         os.unlink(self.fsPath)
         raise SliceDeleted()
 
-  def __cmp__(self, other):
-    return cmp(self.startTime, other.startTime)
+  def __lt__(self, other):
+    return self.startTime < other.startTime
 
 
 class TimeSeriesData(object):

@@ -20,11 +20,12 @@ from ceres import getTree, CorruptNode, NoData, NodeDeleted, NodeNotFound, Slice
 
 def fetch_mock_open_writes(open_mock):
   handle = open_mock()
-  #XXX Python3 compability since a write can be bytes or str
+  # XXX Python3 compability since a write can be bytes or str
   try:
     return b''.join([c[0][0] for c in handle.write.call_args_list])
   except TypeError:
     return ''.join([c[0][0] for c in handle.write.call_args_list])
+
 
 def make_slice_mock(start, end, step):
   slice_mock = Mock(spec=CeresSlice)
@@ -772,6 +773,17 @@ class CeresSliceTest(TestCase):
       ceres_slice.deleteBefore(360)
       # Seek from 300 (start of file) to 360 (1 datapointpoint)
       open_mock.return_value.seek.assert_any_call(1 * DATAPOINT_SIZE)
+
+  @patch('ceres.exists', Mock(return_value=True))
+  def test_slices_are_sortable(self):
+    ceres_slices = [
+      CeresSlice(self.ceres_node, 300, 60),
+      CeresSlice(self.ceres_node, 600, 60),
+      CeresSlice(self.ceres_node, 0, 60)]
+
+    expected_order = [0, 300, 600]
+    result_order = [slice.startTime for slice in sorted(ceres_slices)]
+    self.assertEqual(expected_order, result_order)
 
 
 class CeresSliceWriteTest(TestCase):
